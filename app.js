@@ -36,7 +36,6 @@ function main() {
 
     // an array of objects who's rotation to update
     const objects = [];
-    console.log("WINDOWS HREF",window.location)
 
     const car = new Car()
     car.getModelPromise()

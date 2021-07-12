@@ -64,11 +64,11 @@ export class Car {
                 }
             }
 
-            gltfLoader.load('./../resources/f1_car.gltf', model => elementLoad(model, "car"))
-            gltfLoader.load('./../resources/wheel/wheel.gltf', model => elementLoad(model, "front_left"))
-            gltfLoader.load('./../resources/wheel/wheel.gltf', model => elementLoad(model, "front_right"))
-            gltfLoader.load('./../resources/wheel/wheel.gltf', model => elementLoad(model, "rear_left"))
-            gltfLoader.load('./../resources/wheel/wheel.gltf', model => elementLoad(model, "rear_right"))
+            gltfLoader.load(window.location.href + 'resources/f1_car.gltf', model => elementLoad(model, "car"))
+            gltfLoader.load(window.location.href + 'resources/wheel/wheel.gltf', model => elementLoad(model, "front_left"))
+            gltfLoader.load(window.location.href + 'resources/wheel/wheel.gltf', model => elementLoad(model, "front_right"))
+            gltfLoader.load(window.location.href + 'resources/wheel/wheel.gltf', model => elementLoad(model, "rear_left"))
+            gltfLoader.load(window.location.href + 'resources/wheel/wheel.gltf', model => elementLoad(model, "rear_right"))
         })
         this.modelPromise.then(m => {
             this.carModel = m
