@@ -1,8 +1,7 @@
 import {GLTFLoader} from "../../lib/GLTFLoader.js";
 import * as THREE from '../../lib/three.module.js';
-import * as TWEEN from "../../lib/tween.js/dist/tween.esm.js";
 
-const STEERING_ROTATION_SPEED = 100
+const WHEELS_DIAMETER = 0.60
 
 export class Car {
 
@@ -13,6 +12,7 @@ export class Car {
         wheelDirectionFront: true,
         turnLeft: false,
         turnRight: false,
+        steeringAngle: 0
     }
 
 
@@ -25,36 +25,41 @@ export class Car {
 
             function elementLoad(model, name) {
                 model.scene.rotation.set(Math.PI / 2, -Math.PI / 2, 0, 'XYZ')
-                model.scene.position.set(0, -5, 1.2)
-                const WHEEL_POSITION_Z = -0.4
+                model.scene.position.set(0, 0, 0.55)
+
+                const WHEEL_POSITION_X = 1
+                const WHEEL_POSITION_Y_FRONT = -1.58
+                const WHEEL_POSITION_Y_REAR = 0.95
+                const WHEEL_POSITION_Z = 0.25
+
                 switch (name) {
                     case "front_left":
-                        model.scene.position.x += 0.9
-                        model.scene.position.y -= 1.43
+                        model.scene.position.x += WHEEL_POSITION_X
+                        model.scene.position.y += WHEEL_POSITION_Y_FRONT
                         model.scene.position.z += WHEEL_POSITION_Z
                         break
                     case "front_right":
                         model.scene.rotation.y = Math.PI / 2
-                        model.scene.position.x -= 0.9
-                        model.scene.position.y -= 1.43
+                        model.scene.position.x -= WHEEL_POSITION_X
+                        model.scene.position.y += WHEEL_POSITION_Y_FRONT
                         model.scene.position.z += WHEEL_POSITION_Z
                         break
                     case "rear_left":
-                        model.scene.position.x += 0.9
-                        model.scene.position.y += 1.08
+                        model.scene.position.x += WHEEL_POSITION_X
+                        model.scene.position.y += WHEEL_POSITION_Y_REAR
                         model.scene.position.z += WHEEL_POSITION_Z
                         break
                     case "rear_right":
                         model.scene.rotation.y = Math.PI / 2
-                        model.scene.position.x -= 0.9
-                        model.scene.position.y += 1.08
+                        model.scene.position.x -= WHEEL_POSITION_X
+                        model.scene.position.y += WHEEL_POSITION_Y_REAR
                         model.scene.position.z += WHEEL_POSITION_Z
                         break
                 }
                 model.scene.name = name
                 car.add(model.scene)
                 i++
-                if (i == 5) {
+                if (i === 5) {
                     resolve(car)
                 }
             }
@@ -83,6 +88,8 @@ export class Car {
                     m.rotation.y += 0.05
             }
         })
+        if (this.state.steeringAngle > THREE.Math.degToRad(-30))
+            this.state.steeringAngle -= 0.05
     }
 
     _turnRightAnimation() {
@@ -98,6 +105,8 @@ export class Car {
                     m.rotation.y -= 0.05
             }
         })
+        if (this.state.steeringAngle < THREE.Math.degToRad(30))
+            this.state.steeringAngle += 0.05
     }
 
     _steeringCenterAnimation() {
@@ -106,37 +115,56 @@ export class Car {
             return
         this.carModel.traverse(m => {
             if (m.name === "front_left") {
-                if(m.rotation.y - CENTER_DEADBAND > -Math.PI / 2)
+                if (m.rotation.y - CENTER_DEADBAND > -Math.PI / 2)
                     m.rotation.y -= 0.05
-                else if(m.rotation.y + CENTER_DEADBAND < -Math.PI / 2)
+                else if (m.rotation.y + CENTER_DEADBAND < -Math.PI / 2)
                     m.rotation.y += 0.05
             }
             else if (m.name === "front_right") {
-                if(m.rotation.y > Math.PI / 2)
+                if (m.rotation.y > Math.PI / 2)
                     m.rotation.y -= 0.05
-                else if(m.rotation.y < Math.PI / 2)
+                else if (m.rotation.y < Math.PI / 2)
                     m.rotation.y += 0.05
             }
         })
+        if (this.state.steeringAngle - CENTER_DEADBAND > THREE.Math.degToRad(0))
+            this.state.steeringAngle -= 0.05
+        else if (this.state.steeringAngle + CENTER_DEADBAND < THREE.Math.degToRad(0))
+            this.state.steeringAngle += 0.05
+        else if (this.state.steeringAngle < CENTER_DEADBAND + 0.05 && this.state.steeringAngle > -CENTER_DEADBAND - 0.05)
+            this.state.steeringAngle = 0
     }
 
-    _rotateWheelsAnimation(step){
+    _rotateWheelsAnimation(step) {
         if (this.carModel == null)
             return
+
         this.carModel.traverse(m => {
+
             if (m.name === "front_left") {
-                    m.rotation.x += step
+                m.rotation.z += -step
             }
             else if (m.name === "front_right") {
-                m.rotation.x += step
+                m.rotation.z += -step
             }
             else if (m.name === "rear_right") {
-                m.rotation.x += step
+                m.rotation.z += -step
             }
             else if (m.name === "rear_left") {
-                m.rotation.x += step
+                m.rotation.z += -step
             }
         })
+        const translated_distance = (Math.PI * WHEELS_DIAMETER / 360) * THREE.Math.radToDeg(step)
+        this._moveCar(translated_distance)
+    }
+
+    _moveCar(step) {
+        const step_y = Math.cos(this.carModel.rotation.z) * step
+        const step_x = Math.sin(this.carModel.rotation.z) * step
+        const STEERING_STRENGTH = 30 //From 0 to 1000
+        this.carModel.position.y -= step_y
+        this.carModel.position.x += step_x
+        this.carModel.rotation.z -= this.state.steeringAngle * STEERING_STRENGTH / 1000
     }
 
     getModelPromise() {
@@ -174,16 +202,17 @@ export class Car {
         this.state.wheelRotation = false
     }
 
-
     animate(time) {
-        if(this.state.turnLeft)
+        if (this.state.turnLeft)
             this._turnLeftAnimation()
-        if(this.state.turnRight)
+        if (this.state.turnRight)
             this._turnRightAnimation()
-        if(!this.state.turnRight && !this.state.turnLeft)
+        if (!this.state.turnRight && !this.state.turnLeft)
             this._steeringCenterAnimation()
-        if(this.state.wheelRotation)
-            this._rotateWheelsAnimation(0.05)
+        if (this.state.wheelRotation) {
+            const incremental_step = 0.2 * (this.state.wheelDirectionFront ? 1 : -1)
+            this._rotateWheelsAnimation(incremental_step)
+        }
     }
 
 

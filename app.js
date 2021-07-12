@@ -3,7 +3,6 @@ import * as MapGenerator from './src/mapGenerator.js';
 import {CameraHandler} from "./src/cameraHandler.js";
 import {Car} from "./src/objectes/car.js"
 import {KeyboardHandler} from "./src/keyboardHandler.js";
-import * as TWEEN from './lib/tween.js/dist/tween.umd.js';
 
 function main() {
     const canvas = document.querySelector('#c');
@@ -40,7 +39,8 @@ function main() {
 
 
     const car = new Car()
-    car.getModelPromise().then(model=>{
+    car.getModelPromise()
+        .then(model => {
         scene.add(model)
     })
 
