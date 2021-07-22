@@ -1,5 +1,5 @@
 import * as THREE from './lib/three.module.js';
-import * as MapGenerator from './src/mapGenerator.js';
+import {MapGenerator} from './src/map/mapGenerator.js';
 import {CameraHandler} from "./src/cameraHandler.js";
 import {Car} from "./src/objectes/car.js"
 import {KeyboardHandler} from "./src/keyboardHandler.js";
@@ -34,21 +34,26 @@ function main() {
         scene.add(light);
     }
 
+    const mapGenerator = new MapGenerator()
+
     // an array of objects who's rotation to update
     const objects = [];
 
     const car = new Car()
     car.getModelPromise()
         .then(model => {
-        scene.add(model)
-    })
+            scene.add(model)
+            cameraHandler.setTarget(model.position)
+            mapGenerator.setCarPosition(model.position)
+        })
+
 
     const keyboardHandler = new KeyboardHandler(car)
 
-
-    MapGenerator.getMapObjects().forEach(e => {
-        scene.add(e)
+    mapGenerator.getMapObjects().then(map => {
+        scene.add(map)
     })
+
 
     function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
@@ -75,8 +80,11 @@ function main() {
         });
 
         car.animate(time)
+        cameraHandler.update()
+        mapGenerator.update().then(obj => {
+            scene.add(obj)
+        })
         requestAnimationFrame(render);
-        //TWEEN.update(time)
         renderer.render(scene, camera);
 
 

@@ -2,6 +2,11 @@ import {GLTFLoader} from "../../lib/GLTFLoader.js";
 import * as THREE from '../../lib/three.module.js';
 
 const WHEELS_DIAMETER = 0.60
+const PARTICLE_SMOG_MAX_SIZE_X = 0.35
+const PARTICLE_SMOG_MAX_SIZE_Z = 0.3
+const PARTICLE_SMOG_MAX_SIZE_Y = 0.5;
+
+const PARTICLE_SMOG_PARTICLES_COUNT = 300
 
 export class Car {
 
@@ -18,8 +23,30 @@ export class Car {
 
     constructor() {
         const gltfLoader = new GLTFLoader();
+
+        function _generateSmog() {
+            const vertices = [];
+
+            for (let i = 0; i < PARTICLE_SMOG_PARTICLES_COUNT; i++) {
+                const x = Math.random() % PARTICLE_SMOG_MAX_SIZE_X;
+                const y = Math.random() % PARTICLE_SMOG_MAX_SIZE_Y;
+                const z = Math.random() % PARTICLE_SMOG_MAX_SIZE_Z;
+
+                vertices.push(x, y, z);
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+
+            let particleSystem = new THREE.Points(geometry, new THREE.PointsMaterial({
+                color: "#CECECE",
+                size: 0.02
+            }));
+
+            return particleSystem;
+        }
+
         this.modelPromise = new Promise(resolve => {
-            const car = new THREE.Group()
+            const car = new THREE.Object3D()
 
             let i = 0
 
@@ -59,9 +86,15 @@ export class Car {
                 model.scene.name = name
                 car.add(model.scene)
                 i++
-                if (i === 5) {
-                    resolve(car)
-                }
+                if (i != 5)
+                    return
+
+                const particleSystem = _generateSmog();
+                particleSystem.position.y += WHEEL_POSITION_Y_REAR + 0.30 + PARTICLE_SMOG_MAX_SIZE_Y * 2
+                particleSystem.position.z += WHEEL_POSITION_Z + PARTICLE_SMOG_MAX_SIZE_Z + 0.1
+                car.add(particleSystem)
+                resolve(car)
+
             }
 
             gltfLoader.load(window.location.href + 'resources/f1_car.gltf', model => elementLoad(model, "car"))
@@ -74,6 +107,7 @@ export class Car {
             this.carModel = m
         })
     }
+
 
     _turnLeftAnimation() {
         if (this.carModel == null)
@@ -164,7 +198,8 @@ export class Car {
         const STEERING_STRENGTH = 30 //From 0 to 1000
         this.carModel.position.y -= step_y
         this.carModel.position.x += step_x
-        this.carModel.rotation.z -= this.state.steeringAngle * STEERING_STRENGTH / 1000
+        this.carModel.rotation.z -= ((this.state.wheelDirectionFront ? 1 : -1) * this.state.steeringAngle * STEERING_STRENGTH / 1000)
+
     }
 
     getModelPromise() {
@@ -210,10 +245,9 @@ export class Car {
         if (!this.state.turnRight && !this.state.turnLeft)
             this._steeringCenterAnimation()
         if (this.state.wheelRotation) {
-            const incremental_step = 0.2 * (this.state.wheelDirectionFront ? 1 : -1)
+            const incremental_step = 5 * (this.state.wheelDirectionFront ? 1 : -1)
             this._rotateWheelsAnimation(incremental_step)
         }
     }
-
 
 }
