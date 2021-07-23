@@ -3,6 +3,7 @@ import {MapGenerator} from './src/map/mapGenerator.js';
 import {CameraHandler} from "./src/cameraHandler.js";
 import {Car} from "./src/objectes/car.js"
 import {KeyboardHandler} from "./src/keyboardHandler.js";
+import {CannonDebugRenderer} from "./lib/CannonDebugRenderer.js"
 
 function main() {
     const canvas = document.querySelector('#c');
@@ -14,14 +15,18 @@ function main() {
     const far = 1000;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     camera.position.set(0, 7.15, 7.20);
-    //camera.rotation.set(-1.21,1.14,3.14,'XYZ')
     camera.up.set(0, 0, 1);
-    //camera.lookAt(0, 0, 0);
 
     const cameraHandler = new CameraHandler(camera)
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('black');
+
+    const world = new CANNON.World()
+    world.gravity.set(0, 0, -9.82);
+
+    const cannonDebugRender = new CannonDebugRenderer(scene, world);
+
 
     const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.2);
     scene.add(ambientLight)
@@ -41,17 +46,19 @@ function main() {
 
     const car = new Car()
     car.getModelPromise()
-        .then(model => {
-            scene.add(model)
-            cameraHandler.setTarget(model.position)
-            mapGenerator.setCarPosition(model.position)
+        .then(car => {
+            scene.add(car.car)
+            cameraHandler.setTarget(car.car.position)
+            mapGenerator.setCarPosition(car.car.position)
+            //console.log(car.rigidbody)
+            world.addBody(car.rigidbody)
         })
-
 
     const keyboardHandler = new KeyboardHandler(car)
 
-    mapGenerator.getMapObjects().then(map => {
-        scene.add(map)
+    mapGenerator.getMapObjects().then((map) => {
+        scene.add(map.obj)
+        world.addBody(map.body)
     })
 
 
@@ -66,6 +73,9 @@ function main() {
         return needResize;
     }
 
+    const FIXED_TIME_STEP = 1.0 / 60.0;
+    const MAX_SUBSTEP = 3;
+
     function render(time) {
         time *= 0.001;
 
@@ -79,11 +89,14 @@ function main() {
             obj.rotation.y = time;
         });
 
-        car.animate(time)
         cameraHandler.update()
         mapGenerator.update().then(obj => {
-            scene.add(obj)
+            scene.add(obj.obj)
+            world.addBody(obj.body)
         })
+        car.animate(time)
+        world.step(1 / 60);
+        cannonDebugRender.update();      // Update the debug renderer
         requestAnimationFrame(render);
         renderer.render(scene, camera);
 

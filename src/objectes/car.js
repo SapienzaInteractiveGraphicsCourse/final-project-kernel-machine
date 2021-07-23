@@ -8,10 +8,14 @@ const PARTICLE_SMOG_MAX_SIZE_Y = 0.5;
 
 const PARTICLE_SMOG_PARTICLES_COUNT = 300
 
+const RIGIDBODY_CAR_POSITION_OFFSET = new CANNON.Vec3(0, -0.175, 1.18)
+const RIGIDBODY_CAR_DIMENSION = new CANNON.Vec3(1.1, 2.46, 0.65)
+
 export class Car {
 
     modelPromise = null
     carModel = null
+    carRigidBody = null
     state = {
         wheelRotation: false,
         wheelDirectionFront: true,
@@ -93,7 +97,15 @@ export class Car {
                 particleSystem.position.y += WHEEL_POSITION_Y_REAR + 0.30 + PARTICLE_SMOG_MAX_SIZE_Y * 2
                 particleSystem.position.z += WHEEL_POSITION_Z + PARTICLE_SMOG_MAX_SIZE_Z + 0.1
                 car.add(particleSystem)
-                resolve(car)
+
+                const carRigidBody = new CANNON.Body({
+                    mass: 5,
+                    position: new CANNON.Vec3(car.position.x + RIGIDBODY_CAR_POSITION_OFFSET.x, car.position.y + RIGIDBODY_CAR_POSITION_OFFSET.y, car.position.z + RIGIDBODY_CAR_POSITION_OFFSET.z),
+                    shape: new CANNON.Box(RIGIDBODY_CAR_DIMENSION),
+                    fixedRotation: true
+                })
+
+                resolve({car: car, rigidbody: carRigidBody})
 
             }
 
@@ -103,9 +115,11 @@ export class Car {
             gltfLoader.load(window.location.href + 'resources/wheel/wheel.gltf', model => elementLoad(model, "rear_left"))
             gltfLoader.load(window.location.href + 'resources/wheel/wheel.gltf', model => elementLoad(model, "rear_right"))
         })
-        this.modelPromise.then(m => {
-            this.carModel = m
-        })
+        this.modelPromise.then(obj => {
+                this.carModel = obj.car
+                this.carRigidBody = obj.rigidbody
+            }
+        )
     }
 
 
@@ -193,12 +207,19 @@ export class Car {
     }
 
     _moveCar(step) {
-        const step_y = Math.cos(this.carModel.rotation.z) * step
-        const step_x = Math.sin(this.carModel.rotation.z) * step
+        const POWER_FACTOR = 100
+        const step_y = Math.cos(this.carModel.rotation.z) * step * POWER_FACTOR
+        const step_x = Math.sin(this.carModel.rotation.z) * step * POWER_FACTOR
         const STEERING_STRENGTH = 30 //From 0 to 1000
+        /*
         this.carModel.position.y -= step_y
         this.carModel.position.x += step_x
-        this.carModel.rotation.z -= ((this.state.wheelDirectionFront ? 1 : -1) * this.state.steeringAngle * STEERING_STRENGTH / 1000)
+
+         */
+        //this.carRigidBody.angularVelocity.z =- 0.5//((this.state.wheelDirectionFront ? 1 : -1) * this.state.steeringAngle * STEERING_STRENGTH / 1000)
+        this.carRigidBody.velocity.y = -80 * (this.state.wheelDirectionFront ? 1 : -1)
+        //this.carRigidBody.velocity.x = this.state.
+
 
     }
 
@@ -247,6 +268,11 @@ export class Car {
         if (this.state.wheelRotation) {
             const incremental_step = 5 * (this.state.wheelDirectionFront ? 1 : -1)
             this._rotateWheelsAnimation(incremental_step)
+        }
+        if (this.carModel != null && this.carRigidBody != null) {
+            this.carModel.position.x = this.carRigidBody.position.x - RIGIDBODY_CAR_POSITION_OFFSET.x
+            this.carModel.position.y = this.carRigidBody.position.y - RIGIDBODY_CAR_POSITION_OFFSET.y
+            this.carModel.position.z = this.carRigidBody.position.z - RIGIDBODY_CAR_POSITION_OFFSET.z
         }
     }
 

@@ -22,15 +22,23 @@ export class MapGenerator {
     }
 
     _getFloorInstance() {
+        //Floor
         const floorGeometry = new THREE.BoxGeometry(FLOOR_WIDTH, FLOOR_LENGTH, FLOOR_HEIGHT);
         const floorMaterial = new THREE.MeshPhongMaterial({color: '#8AC'});
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        const floorBody = new CANNON.Body({
+            mass: 0,
+            position: new CANNON.Vec3(0,0,0),
+            shape: new CANNON.Box(new CANNON.Vec3(10,250,0.5))
+        })
 
+        //Left wall
         const wallGeometryL = new THREE.BoxGeometry(WALL_THICK, FLOOR_LENGTH, WALL_HEIGHT);
         const wallMaterialL = new THREE.MeshPhongMaterial({color: '#8AC'});
         const wallLeft = new THREE.Mesh(wallGeometryL, wallMaterialL)
         wallLeft.position.set(FLOOR_WIDTH / 2, 0, WALL_HEIGHT / 2)
 
+        //Right wall
         const wallGeometryR = new THREE.BoxGeometry(WALL_THICK, FLOOR_LENGTH, WALL_HEIGHT);
         const wallMaterialR = new THREE.MeshPhongMaterial({color: '#8AF'});
         const wallRight = new THREE.Mesh(wallGeometryR, wallMaterialR);
@@ -44,7 +52,7 @@ export class MapGenerator {
                 x.forEach(ramp => {
                     floor.add(ramp)
                 })
-                resolve(floor)
+                resolve({obj:floor,body:floorBody})
             });
         })
 
@@ -53,7 +61,7 @@ export class MapGenerator {
     getMapObjects() {
         return new Promise(resolve => {
             this._getFloorInstance().then(obj => {
-                obj.position.set(0, 0, 0);
+                obj.obj.position.set(0, 0, 0);
                 resolve(obj)
             });
         });
@@ -74,10 +82,12 @@ export class MapGenerator {
                 this.lastGenerationCarPosition = FLOOR_LENGTH * this.generatedMapCounter
 
                 this._getFloorInstance().then(mdl => {
-                    mdl.position.x = 0;
-                    mdl.position.y = -FLOOR_LENGTH * this.generatedMapCounter
-                    mdl.position.z = 0
-
+                    mdl.obj.position.x = 0;
+                    mdl.obj.position.y = -FLOOR_LENGTH * this.generatedMapCounter
+                    mdl.obj.position.z = 0
+                    mdl.body.position.x = 0;
+                    mdl.body.position.y = -FLOOR_LENGTH * this.generatedMapCounter
+                    mdl.body.position.z = 0
                     res(mdl)
                 })
             }
