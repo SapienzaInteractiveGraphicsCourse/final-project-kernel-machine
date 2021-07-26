@@ -23,7 +23,7 @@ function main() {
     scene.background = new THREE.Color('black');
 
     const world = new CANNON.World()
-    world.gravity.set(0, 0, -9.82);
+    world.gravity.set(0, 0, -10);
 
     const cannonDebugRender = new CannonDebugRenderer(scene, world);
 
@@ -50,7 +50,6 @@ function main() {
             scene.add(car.car)
             cameraHandler.setTarget(car.car.position)
             mapGenerator.setCarPosition(car.car.position)
-            //console.log(car.rigidbody)
             world.addBody(car.rigidbody)
         })
 
@@ -58,7 +57,9 @@ function main() {
 
     mapGenerator.getMapObjects().then((map) => {
         scene.add(map.obj)
-        world.addBody(map.body)
+        map.bodies.forEach(b => {
+            world.addBody(b)
+        })
     })
 
 
@@ -92,15 +93,15 @@ function main() {
         cameraHandler.update()
         mapGenerator.update().then(obj => {
             scene.add(obj.obj)
-            world.addBody(obj.body)
+            obj.bodies.forEach(b => {
+                world.addBody(b)
+            })
         })
         car.animate(time)
         world.step(1 / 60);
         cannonDebugRender.update();      // Update the debug renderer
         requestAnimationFrame(render);
         renderer.render(scene, camera);
-
-
     }
 
     requestAnimationFrame(render);

@@ -99,10 +99,9 @@ export class Car {
                 car.add(particleSystem)
 
                 const carRigidBody = new CANNON.Body({
-                    mass: 5,
+                    mass: 800,
                     position: new CANNON.Vec3(car.position.x + RIGIDBODY_CAR_POSITION_OFFSET.x, car.position.y + RIGIDBODY_CAR_POSITION_OFFSET.y, car.position.z + RIGIDBODY_CAR_POSITION_OFFSET.z),
                     shape: new CANNON.Box(RIGIDBODY_CAR_DIMENSION),
-                    fixedRotation: true
                 })
 
                 resolve({car: car, rigidbody: carRigidBody})
@@ -207,20 +206,25 @@ export class Car {
     }
 
     _moveCar(step) {
-        const POWER_FACTOR = 100
-        const step_y = Math.cos(this.carModel.rotation.z) * step * POWER_FACTOR
-        const step_x = Math.sin(this.carModel.rotation.z) * step * POWER_FACTOR
+        const invert_steering = (!this.state.wheelDirectionFront && (this.state.turnRight || this.state.turnLeft) ? -1 : 1)
+        const step_y = -Math.cos(this.carModel.rotation.z) * step * (this.state.wheelDirectionFront ? 1 : -1)
+        const step_x = Math.sin(this.carModel.rotation.z) * step * (this.state.wheelDirectionFront ? 1 : -1)
         const STEERING_STRENGTH = 30 //From 0 to 1000
-        /*
-        this.carModel.position.y -= step_y
-        this.carModel.position.x += step_x
 
-         */
-        //this.carRigidBody.angularVelocity.z =- 0.5//((this.state.wheelDirectionFront ? 1 : -1) * this.state.steeringAngle * STEERING_STRENGTH / 1000)
-        this.carRigidBody.velocity.y = -80 * (this.state.wheelDirectionFront ? 1 : -1)
-        //this.carRigidBody.velocity.x = this.state.
+        const IS_ON_PLANE = this.carModel.rotation.y > THREE.Math.degToRad(-45) && this.carModel.rotation.y < THREE.Math.degToRad(45)
 
 
+        //Only the body position is edited, the model will be updated on update function
+        if(IS_ON_PLANE) {
+            this.carRigidBody.position.y += step_y
+            this.carRigidBody.position.x += step_x
+        }
+        if (this.carModel.position.z < 0 && IS_ON_PLANE) {
+            var target = new CANNON.Vec3(0, 0, 0)
+            this.carRigidBody.quaternion.toEuler(target, 'YZX')
+            target.z -= this.state.steeringAngle * invert_steering * STEERING_STRENGTH / 1000
+            this.carRigidBody.quaternion.setFromEuler(target.x, target.y, target.z)
+        }
     }
 
     getModelPromise() {
@@ -266,13 +270,17 @@ export class Car {
         if (!this.state.turnRight && !this.state.turnLeft)
             this._steeringCenterAnimation()
         if (this.state.wheelRotation) {
-            const incremental_step = 5 * (this.state.wheelDirectionFront ? 1 : -1)
-            this._rotateWheelsAnimation(incremental_step)
+            this._rotateWheelsAnimation(1)
         }
         if (this.carModel != null && this.carRigidBody != null) {
+
+            //Update position/rotation of the model to the physical body
             this.carModel.position.x = this.carRigidBody.position.x - RIGIDBODY_CAR_POSITION_OFFSET.x
             this.carModel.position.y = this.carRigidBody.position.y - RIGIDBODY_CAR_POSITION_OFFSET.y
             this.carModel.position.z = this.carRigidBody.position.z - RIGIDBODY_CAR_POSITION_OFFSET.z
+            var target = new CANNON.Vec3(0, 0, 0)
+            this.carRigidBody.quaternion.toEuler(target, 'YZX')
+            this.carModel.rotation.set(target.x, target.y, target.z)
         }
     }
 

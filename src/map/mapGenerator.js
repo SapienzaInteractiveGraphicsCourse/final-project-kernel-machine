@@ -21,16 +21,19 @@ export class MapGenerator {
 
     }
 
-    _getFloorInstance() {
+    _getFloorInstance(firstInstance = false) {
+        const bodies = []
         //Floor
         const floorGeometry = new THREE.BoxGeometry(FLOOR_WIDTH, FLOOR_LENGTH, FLOOR_HEIGHT);
         const floorMaterial = new THREE.MeshPhongMaterial({color: '#8AC'});
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+
         const floorBody = new CANNON.Body({
             mass: 0,
-            position: new CANNON.Vec3(0,0,0),
-            shape: new CANNON.Box(new CANNON.Vec3(10,250,0.5))
+            position: new CANNON.Vec3(0, 0, 0),
+            shape: new CANNON.Box(new CANNON.Vec3(10, 250, 0.5))
         })
+        bodies.push(floorBody)
 
         //Left wall
         const wallGeometryL = new THREE.BoxGeometry(WALL_THICK, FLOOR_LENGTH, WALL_HEIGHT);
@@ -38,21 +41,38 @@ export class MapGenerator {
         const wallLeft = new THREE.Mesh(wallGeometryL, wallMaterialL)
         wallLeft.position.set(FLOOR_WIDTH / 2, 0, WALL_HEIGHT / 2)
 
+        const WallLeftBody = new CANNON.Body({
+            mass: 0,
+            position: new CANNON.Vec3(FLOOR_WIDTH / 2, 0, WALL_HEIGHT / 2),
+            shape: new CANNON.Box(new CANNON.Vec3(WALL_THICK / 2, FLOOR_LENGTH / 2, WALL_HEIGHT / 2))
+        })
+        bodies.push(WallLeftBody)
+
         //Right wall
         const wallGeometryR = new THREE.BoxGeometry(WALL_THICK, FLOOR_LENGTH, WALL_HEIGHT);
         const wallMaterialR = new THREE.MeshPhongMaterial({color: '#8AF'});
         const wallRight = new THREE.Mesh(wallGeometryR, wallMaterialR);
         wallRight.position.set(-FLOOR_WIDTH / 2, 0, WALL_HEIGHT / 2)
 
+        const WallRightBody = new CANNON.Body({
+            mass: 0,
+            position: new CANNON.Vec3(-FLOOR_WIDTH / 2, 0, WALL_HEIGHT / 2),
+            shape: new CANNON.Box(new CANNON.Vec3(WALL_THICK / 2, FLOOR_LENGTH / 2, WALL_HEIGHT / 2))
+        })
+        bodies.push(WallRightBody)
+
         floor.add(wallLeft)
         floor.add(wallRight)
-
+        const DEADBAND_WITHOUT_RAMPS = 2
         return new Promise(resolve => {
             this.rampGenerator.getRamps(-FLOOR_LENGTH / 2, FLOOR_LENGTH / 2).then(x => {
                 x.forEach(ramp => {
-                    floor.add(ramp)
+                    if (!(firstInstance && ramp.obj.name === "ramp" && ramp.obj.position.x > -DEADBAND_WITHOUT_RAMPS && ramp.obj.position.x < DEADBAND_WITHOUT_RAMPS)) {
+                        floor.add(ramp.obj)
+                        bodies.push(ramp.body)
+                    }
                 })
-                resolve({obj:floor,body:floorBody})
+                resolve({obj: floor, bodies: bodies})
             });
         })
 
@@ -60,9 +80,12 @@ export class MapGenerator {
 
     getMapObjects() {
         return new Promise(resolve => {
-            this._getFloorInstance().then(obj => {
-                obj.obj.position.set(0, 0, 0);
-                resolve(obj)
+            this._getFloorInstance(true)
+                .then(obj => {
+                    obj.obj.position.set(0, 0, 0);
+                    resolve(obj)
+                }).finally(() => {
+
             });
         });
     }
@@ -82,12 +105,11 @@ export class MapGenerator {
                 this.lastGenerationCarPosition = FLOOR_LENGTH * this.generatedMapCounter
 
                 this._getFloorInstance().then(mdl => {
-                    mdl.obj.position.x = 0;
                     mdl.obj.position.y = -FLOOR_LENGTH * this.generatedMapCounter
-                    mdl.obj.position.z = 0
-                    mdl.body.position.x = 0;
-                    mdl.body.position.y = -FLOOR_LENGTH * this.generatedMapCounter
-                    mdl.body.position.z = 0
+
+                    for (let i = 0; i < mdl.bodies.length; i++) {
+                        mdl.bodies[i].position.y -= FLOOR_LENGTH * this.generatedMapCounter
+                    }
                     res(mdl)
                 })
             }
