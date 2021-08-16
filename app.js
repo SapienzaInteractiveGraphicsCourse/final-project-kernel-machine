@@ -2,7 +2,6 @@ import * as THREE from './lib/three.module.js';
 import {MapGenerator} from './src/map/mapGenerator.js';
 import {CameraHandler} from "./src/cameraHandler.js";
 import {KeyboardHandler} from "./src/keyboardHandler.js";
-import {CannonDebugRenderer} from "./lib/CannonDebugRenderer.js"
 import {Character} from "./src/objectes/character.js"
 import {CollisionManager} from "./src/CollisionManager.js";
 import {BlockGenerator} from "./src/map/BlockGenerator.js";

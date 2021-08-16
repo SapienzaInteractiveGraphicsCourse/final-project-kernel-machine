@@ -75,7 +75,7 @@ export class Character {
         }
     }
     state = {
-        currentAction: CHARACTER_ACTION.WALKING,
+        currentAction: CHARACTER_ACTION.NONE,
         XPosition: {
             OnLeft: false,
             OnCenter: true,
@@ -233,10 +233,12 @@ export class Character {
     }
 
     startWalking() {
-        if(this._isPaused)
+        if (this._isPaused)
             return;
         if (!this._isOnFloor())
             return
+        if (this.state.currentAction === CHARACTER_ACTION.WALKING)
+            return;
         this.state.currentAction = CHARACTER_ACTION.WALKING
 
         const ANIMATION_SPEED = 400 / this.speed
@@ -320,7 +322,7 @@ export class Character {
 
     updatePosition(time) {
 
-        if(this._isPaused)
+        if (this._isPaused)
             return
 
         if (this.state.currentAction !== CHARACTER_ACTION.NONE && this.state.currentAction !== CHARACTER_ACTION.FALLING)
@@ -436,7 +438,6 @@ export class Character {
         this.currentTween = frameA
         this.currentTween.chain(frameB)
         this.currentTween.onComplete(() => {
-            this.state.currentAction = CHARACTER_ACTION.WALKING
             this.startWalking()
         })
         this.currentTween.start()
@@ -444,7 +445,7 @@ export class Character {
     }
 
     jump() {
-        if(this._isPaused)
+        if (this._isPaused)
             return;
 
         const ANIMATION_SPEED = 700 / this.speed
