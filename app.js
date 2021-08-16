@@ -112,10 +112,11 @@ function main() {
     let lastTimeSpeedChanges = 0 //Last time when speed has changed
     character.isPaused = true
     loadManager.onLoad = (() => {
-        character.startWalking()
-        character.isPaused = false
         document.getElementById("loading_flex").style.display = 'none'
         document.getElementById("distance").style.display = 'block'
+        character.isPaused = false
+        character.startWalking()
+        console.log("LOADED COMPLETE")
     })
 
 

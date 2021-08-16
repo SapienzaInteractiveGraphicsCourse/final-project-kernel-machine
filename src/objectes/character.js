@@ -221,7 +221,6 @@ export class Character {
 
         this.getCenterBodyAnimation = new TWEEN.Tween(this.hierarchicalModel.body.model.rotation).to({y: 0}, 300)
 
-
     }
 
     getModel() {
@@ -233,12 +232,12 @@ export class Character {
     }
 
     startWalking() {
+
         if (this._isPaused)
             return;
         if (!this._isOnFloor())
             return
-        if (this.state.currentAction === CHARACTER_ACTION.WALKING)
-            return;
+
         this.state.currentAction = CHARACTER_ACTION.WALKING
 
         const ANIMATION_SPEED = 400 / this.speed
@@ -282,6 +281,7 @@ export class Character {
                 {y: -Math.PI / 16}, {x: Math.PI / 2}, {x: Math.PI / 2}], ANIMATION_SPEED)
             .easing(TWEEN.Easing.Circular.None)
 
+        this._stopAnimation()
         this.currentTween = keyFrameA
         this.currentTween.chain(keyFrameB)
         keyFrameB.chain(this.currentTween)
