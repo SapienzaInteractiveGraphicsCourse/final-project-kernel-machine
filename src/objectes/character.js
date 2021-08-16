@@ -201,7 +201,7 @@ export class Character {
             metal,
             metal,
             metal,
-            new THREE.MeshPhongMaterial({map: new THREE.TextureLoader(this.loaderManager).load("./../../resources/textures/face.png")}),
+            new THREE.MeshPhongMaterial({map: new THREE.TextureLoader(this.loaderManager).load(window.location.href.substring(0, window.location.href.lastIndexOf("/"))+"/resources/textures/face.png")}),
             metal
         ]
 
