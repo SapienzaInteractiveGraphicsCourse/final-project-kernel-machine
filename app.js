@@ -28,7 +28,8 @@ function main() {
     const scene = new THREE.Scene();
     //scene.background = new THREE.Color('#f14063');
     const loader = new THREE.TextureLoader(loadManager);
-    loader.load(window.location.origin+'/resources/textures/space.jpg', function (texture) {
+    const path = window.location.href.substring(0, window.location.href.lastIndexOf("/"))
+    loader.load(path + '/resources/textures/space.jpg', function (texture) {
         scene.background = texture;
     });
 
@@ -74,7 +75,7 @@ function main() {
     })
 
     mapGenerator.getMapObjects().then((map) => {
-        const blocks = blockGenerator.getBlocks(100, 250)
+        const blocks = blockGenerator.getBlocks(100, FLOOR_LENGTH/2)
         blocks.forEach(block => {
             scene.add(block)
         })
@@ -113,8 +114,8 @@ function main() {
     loadManager.onLoad = (() => {
         character.startWalking()
         character.isPaused = false
-        document.getElementById("loading_flex").style.display='none'
-        document.getElementById("distance").style.display='block'
+        document.getElementById("loading_flex").style.display = 'none'
+        document.getElementById("distance").style.display = 'block'
     })
 
 

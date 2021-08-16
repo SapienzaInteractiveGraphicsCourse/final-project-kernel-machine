@@ -93,9 +93,9 @@ export class Character {
         this.model = new THREE.Object3D()
 
         const textureLoader = new THREE.TextureLoader(this.loaderManager)
-
-        const blackMetal = new THREE.MeshPhongMaterial({map: textureLoader.load(window.location.origin + "/resources/textures/black_metal.jpg")});
-        const metal = new THREE.MeshPhongMaterial({map: textureLoader.load(window.location.origin + "/resources/textures/metal.jpg")});
+        const path = window.location.href.substring(0, window.location.href.lastIndexOf("/"))
+        const blackMetal = new THREE.MeshPhongMaterial({map: textureLoader.load(path + "/resources/textures/black_metal.jpg")});
+        const metal = new THREE.MeshPhongMaterial({map: textureLoader.load(path + "/resources/textures/metal.jpg")});
 
         const bodyGeometry = new THREE.CylinderGeometry(1, 0.8, BODY_HEIGHT, 64);
         const body = new THREE.Mesh(bodyGeometry, metal);
