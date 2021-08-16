@@ -28,7 +28,7 @@ function main() {
     const scene = new THREE.Scene();
     //scene.background = new THREE.Color('#f14063');
     const loader = new THREE.TextureLoader(loadManager);
-    loader.load('./resources/textures/space.jpg', function (texture) {
+    loader.load(window.location.origin+'/resources/textures/space.jpg', function (texture) {
         scene.background = texture;
     });
 

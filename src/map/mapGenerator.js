@@ -20,12 +20,12 @@ export class MapGenerator {
     }
 
     _getFloorInstance() {
-        const texture = new THREE.TextureLoader(this.loaderManager).load("./../../resources/textures/floor_metal.webp");
+        const texture = new THREE.TextureLoader(this.loaderManager).load(window.location.origin+"/resources/textures/floor_metal.webp");
         texture.wrapS = THREE.RepeatWrapping
         texture.wrapT = THREE.RepeatWrapping
         texture.repeat.set(8, 16)
 
-        const textureWall = new THREE.TextureLoader(this.loaderManager).load("./../../resources/textures/floor_metal.webp");
+        const textureWall = new THREE.TextureLoader(this.loaderManager).load(window.location.origin+"/resources/textures/floor_metal.webp");
         textureWall.wrapS = THREE.RepeatWrapping
         textureWall.wrapT = THREE.RepeatWrapping
         textureWall.repeat.set(2, 3)
