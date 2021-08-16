@@ -8,7 +8,15 @@
 <body id="menuBody">
 <script>
     function loadGame() {
-        window.location.href="./game.html"
+        window.location.href = "./game.html"
+    }
+
+    function toggleHowToPlay() {
+        const element = document.getElementById("tutorial")
+        if (element.style.display != 'none')
+            element.style.display = 'none'
+        else
+            element.style.display = 'block'
     }
 </script>
 <div class="menuDiv">
@@ -16,7 +24,19 @@
     <h1>DROIDrun</h1>
     <div>
         <button class="buttonClass" onclick="loadGame()">START</button>
-        <button class="buttonClass">TUTORIAL</button>
+        <button class="buttonClass" onclick="toggleHowToPlay()">How to play</button>
+    </div>
+    <div class="container">
+        <div id="tutorial">
+            <p>You have to reach the maximum distance avoiding obstacles</p>
+            <p>Press:</p>
+            <ul>
+                <li><b>A:</b> To go left</li>
+                <li><b>D:</b> To go right</li>
+                <li><b>S:</b> To go down</li>
+                <li><b>Space:</b> to jump</li>
+            </ul>
+        </div>
     </div>
 </div>
 </body>

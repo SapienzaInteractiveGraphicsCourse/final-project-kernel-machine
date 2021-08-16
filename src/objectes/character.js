@@ -26,10 +26,6 @@ const LEG_LOWER_WALK_APERTURE_REAR = 0
 
 const WALKING_Z = 1
 
-const WALKING_SPEED = -50
-
-const RIGIDBODY_DIMENSION = new CANNON.Vec3(1.7, 0.9, 2.6)
-
 const CHARACTER_ACTION = {
     NONE: 0,
     WALKING: 1,
@@ -89,43 +85,50 @@ export class Character {
     speed = 1
     currentTween = null
     getCenterBodyAnimation = null
+    loaderManager = null
+    _isPaused = false
 
-    constructor() {
+    constructor(loaderManager) {
+        this.loaderManager = loaderManager
         this.model = new THREE.Object3D()
-        const legMaterial = new THREE.MeshPhongMaterial({color: 0x00ff00});
+
+        const textureLoader = new THREE.TextureLoader(this.loaderManager)
+
+        const blackMetal = new THREE.MeshPhongMaterial({map: textureLoader.load("./../../resources/textures/black_metal.jpg")});
+        const metal = new THREE.MeshPhongMaterial({map: textureLoader.load("./../../resources/textures/metal.jpg")});
 
         const bodyGeometry = new THREE.CylinderGeometry(1, 0.8, BODY_HEIGHT, 64);
-        const body = new THREE.Mesh(bodyGeometry, legMaterial);
+        const body = new THREE.Mesh(bodyGeometry, metal);
         body.rotation.x = Math.PI / 2
         body.name = "body"
         this.hierarchicalModel.body.model = body
 
         const pelvisGeometry = new THREE.ConeGeometry(PELVIS_RADIUS, PELVIS_RADIUS_HEIGHT, MIDDLE_RESOLUTION_SEGMENTS);
-        const pelvis = new THREE.Mesh(pelvisGeometry, legMaterial);
+        const pelvis = new THREE.Mesh(pelvisGeometry, metal);
         pelvis.rotation.x = Math.PI
         pelvis.position.y -= 0.4
         pelvis.name = "pelvis"
         this.hierarchicalModel.body.pelvis.pelvis = pelvis
 
         const pivotGeometry = new THREE.SphereGeometry(PIVOT_RADIUS, 64, 64);
-        this.hierarchicalModel.body.pelvis.pivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.pivot = new THREE.Mesh(pivotGeometry, blackMetal);
         this.hierarchicalModel.body.pelvis.pivot.position.y -= 0.85
         this.hierarchicalModel.body.pelvis.pivot.add(pelvis)
 
         //Right leg
-        this.hierarchicalModel.body.pelvis.LegR.upperPivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.LegR.upperPivot = new THREE.Mesh(pivotGeometry, metal);
         this.hierarchicalModel.body.pelvis.LegR.upperPivot.position.set(0.5, 0, 0)
 
         const legUpperGeometry = new THREE.CylinderGeometry(LEG_LOWER_LARGE_RADIUS, LEG_LOWER_SMALL_RADIUS, LEG_UPPER_LENGTH, HIGH_RESOLUTION_SEGMENTS);
-        this.hierarchicalModel.body.pelvis.LegR.upperLeg = new THREE.Mesh(legUpperGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.LegR.upperLeg = new THREE.Mesh(legUpperGeometry, blackMetal);
         this.hierarchicalModel.body.pelvis.LegR.upperLeg.position.set(0, LEG_LOWER_LENGTH / 2, 0)
         this.hierarchicalModel.body.pelvis.LegR.upperPivot.add(this.hierarchicalModel.body.pelvis.LegR.upperLeg)
 
-        this.hierarchicalModel.body.pelvis.LegR.lowerPivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.LegR.lowerPivot = new THREE.Mesh(pivotGeometry, metal);
         this.hierarchicalModel.body.pelvis.LegR.lowerPivot.position.set(0, UPPER_ARM_LENGTH / 2, 0)
 
         const legLowerGeometry = new THREE.CylinderGeometry(LEG_LOWER_SMALL_RADIUS, LEG_LOWER_LARGE_RADIUS, LEG_LOWER_LENGTH, HIGH_RESOLUTION_SEGMENTS);
-        this.hierarchicalModel.body.pelvis.LegR.lowerLeg = new THREE.Mesh(legLowerGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.LegR.lowerLeg = new THREE.Mesh(legLowerGeometry, blackMetal);
         this.hierarchicalModel.body.pelvis.LegR.lowerLeg.position.y = LEG_LOWER_LENGTH / 2
 
         this.hierarchicalModel.body.pelvis.LegR.lowerPivot.add(this.hierarchicalModel.body.pelvis.LegR.lowerLeg)
@@ -133,17 +136,17 @@ export class Character {
         this.hierarchicalModel.body.pelvis.pelvis.add(this.hierarchicalModel.body.pelvis.LegR.upperPivot)
 
         //Left leg
-        this.hierarchicalModel.body.pelvis.LegL.upperPivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.LegL.upperPivot = new THREE.Mesh(pivotGeometry, metal);
         this.hierarchicalModel.body.pelvis.LegL.upperPivot.position.set(-0.5, 0, 0)
 
-        this.hierarchicalModel.body.pelvis.LegL.upperLeg = new THREE.Mesh(legUpperGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.LegL.upperLeg = new THREE.Mesh(legUpperGeometry, blackMetal);
         this.hierarchicalModel.body.pelvis.LegL.upperLeg.position.set(0, LEG_LOWER_LENGTH / 2, 0)
         this.hierarchicalModel.body.pelvis.LegL.upperPivot.add(this.hierarchicalModel.body.pelvis.LegL.upperLeg)
 
-        this.hierarchicalModel.body.pelvis.LegL.lowerPivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.LegL.lowerPivot = new THREE.Mesh(pivotGeometry, metal);
         this.hierarchicalModel.body.pelvis.LegL.lowerPivot.position.set(0, UPPER_ARM_LENGTH / 2, 0)
 
-        this.hierarchicalModel.body.pelvis.LegL.lowerLeg = new THREE.Mesh(legLowerGeometry, legMaterial);
+        this.hierarchicalModel.body.pelvis.LegL.lowerLeg = new THREE.Mesh(legLowerGeometry, blackMetal);
         this.hierarchicalModel.body.pelvis.LegL.lowerLeg.position.y = LEG_LOWER_LENGTH / 2
 
         this.hierarchicalModel.body.pelvis.LegL.lowerPivot.add(this.hierarchicalModel.body.pelvis.LegL.lowerLeg)
@@ -151,20 +154,20 @@ export class Character {
         this.hierarchicalModel.body.pelvis.pelvis.add(this.hierarchicalModel.body.pelvis.LegL.upperPivot)
 
         //Left Arm
-        this.hierarchicalModel.body.ArmL.upperPivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.ArmL.upperPivot = new THREE.Mesh(pivotGeometry, blackMetal);
         this.hierarchicalModel.body.ArmL.upperPivot.position.set(1.2, 0.5, 0)
         this.hierarchicalModel.body.ArmL.upperPivot.rotation.z = THREE.Math.degToRad(DEFAULT_ARM_APERTURE_DEGREE)
 
         const armUpperGeometry = new THREE.CylinderGeometry(0.2, 0.15, UPPER_ARM_LENGTH, 64);
-        this.hierarchicalModel.body.ArmL.upperArm = new THREE.Mesh(armUpperGeometry, legMaterial);
+        this.hierarchicalModel.body.ArmL.upperArm = new THREE.Mesh(armUpperGeometry, blackMetal);
         this.hierarchicalModel.body.ArmL.upperArm.position.y = -UPPER_ARM_LENGTH / 2
 
-        this.hierarchicalModel.body.ArmL.lowerPivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.ArmL.lowerPivot = new THREE.Mesh(pivotGeometry, metal);
         this.hierarchicalModel.body.ArmL.lowerPivot.position.set(0, -UPPER_ARM_LENGTH / 2, 0)
         this.hierarchicalModel.body.ArmL.lowerPivot.rotation.z = -this.hierarchicalModel.body.ArmL.upperPivot.rotation.z
 
         const armLowerGeometry = new THREE.CylinderGeometry(0.15, 0.2, 0.60, 64);
-        this.hierarchicalModel.body.ArmL.lowerArm = new THREE.Mesh(armLowerGeometry, legMaterial);
+        this.hierarchicalModel.body.ArmL.lowerArm = new THREE.Mesh(armLowerGeometry, metal);
         this.hierarchicalModel.body.ArmL.lowerArm.position.set(0, -0.3, 0)
 
         this.hierarchicalModel.body.ArmL.lowerPivot.add(this.hierarchicalModel.body.ArmL.lowerArm)
@@ -172,29 +175,38 @@ export class Character {
         this.hierarchicalModel.body.ArmL.upperPivot.add(this.hierarchicalModel.body.ArmL.upperArm)
 
         //Right Arm
-        this.hierarchicalModel.body.ArmR.upperPivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.ArmR.upperPivot = new THREE.Mesh(pivotGeometry, blackMetal);
         this.hierarchicalModel.body.ArmR.upperPivot.position.set(-1.2, 0.5, 0)
         this.hierarchicalModel.body.ArmR.upperPivot.rotation.z = -THREE.Math.degToRad(DEFAULT_ARM_APERTURE_DEGREE)
 
-        this.hierarchicalModel.body.ArmR.upperArm = new THREE.Mesh(armUpperGeometry, legMaterial);
+        this.hierarchicalModel.body.ArmR.upperArm = new THREE.Mesh(armUpperGeometry, blackMetal);
         this.hierarchicalModel.body.ArmR.upperArm.position.y = -UPPER_ARM_LENGTH / 2
 
-        this.hierarchicalModel.body.ArmR.lowerPivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.ArmR.lowerPivot = new THREE.Mesh(pivotGeometry, metal);
         this.hierarchicalModel.body.ArmR.lowerPivot.position.set(0, -UPPER_ARM_LENGTH / 2, 0)
         this.hierarchicalModel.body.ArmR.lowerPivot.rotation.z = -this.hierarchicalModel.body.ArmR.upperPivot.rotation.z
 
-        this.hierarchicalModel.body.ArmR.lowerArm = new THREE.Mesh(armLowerGeometry, legMaterial);
+        this.hierarchicalModel.body.ArmR.lowerArm = new THREE.Mesh(armLowerGeometry, metal);
         this.hierarchicalModel.body.ArmR.lowerArm.position.set(0, -0.3, 0)
 
         this.hierarchicalModel.body.ArmR.lowerPivot.add(this.hierarchicalModel.body.ArmR.lowerArm)
         this.hierarchicalModel.body.ArmR.upperArm.add(this.hierarchicalModel.body.ArmR.lowerPivot)
         this.hierarchicalModel.body.ArmR.upperPivot.add(this.hierarchicalModel.body.ArmR.upperArm)
 
-        this.hierarchicalModel.body.head.pivot = new THREE.Mesh(pivotGeometry, legMaterial);
+        this.hierarchicalModel.body.head.pivot = new THREE.Mesh(pivotGeometry, blackMetal);
         this.hierarchicalModel.body.head.pivot.position.set(0, (PIVOT_RADIUS + BODY_HEIGHT) / 2, 0)
 
+        const headMaterials = [
+            metal,
+            metal,
+            metal,
+            metal,
+            new THREE.MeshPhongMaterial({map: new THREE.TextureLoader(this.loaderManager).load("./../../resources/textures/face.png")}),
+            metal
+        ]
+
         const headGeometry = new THREE.BoxGeometry(HEAD_WIDTH, HEAD_HEIGHT, HEAD_DEPTH);
-        this.hierarchicalModel.body.head.head = new THREE.Mesh(headGeometry, legMaterial);
+        this.hierarchicalModel.body.head.head = new THREE.Mesh(headGeometry, headMaterials);
         this.hierarchicalModel.body.head.head.position.set(0, (PIVOT_RADIUS + HEAD_HEIGHT) / 2, 0)
         this.hierarchicalModel.body.head.pivot.add(this.hierarchicalModel.body.head.head)
 
@@ -207,15 +219,6 @@ export class Character {
         this.model.add(body)
 
 
-        /*
-        this.rigidBody = new CANNON.Body({
-            mass: 120,
-            position: new CANNON.Vec3(0, 0, 3),
-            shape: new CANNON.Box(RIGIDBODY_DIMENSION),
-            fixedRotation: true
-        })
-        this.rigidBody.addEventListener("collide",this.onCollision)
-*/
         this.getCenterBodyAnimation = new TWEEN.Tween(this.hierarchicalModel.body.model.rotation).to({y: 0}, 300)
 
 
@@ -230,6 +233,8 @@ export class Character {
     }
 
     startWalking() {
+        if(this._isPaused)
+            return;
         if (!this._isOnFloor())
             return
         this.state.currentAction = CHARACTER_ACTION.WALKING
@@ -314,23 +319,10 @@ export class Character {
     lastState = null
 
     updatePosition(time) {
-        /*
-        if (this.state.walking) {
-            const traveled_position =
-                (Math.sqrt(Math.pow(LEG_UPPER_LENGTH + LEG_LOWER_LENGTH, 2)
-                    + Math.pow(Math.cos(LEG_UPPER_WALK_APERTURE_REAR) * (LEG_UPPER_LENGTH + LEG_LOWER_LENGTH), 2)))
-                + (Math.sqrt(Math.pow(LEG_UPPER_LENGTH + LEG_LOWER_LENGTH, 2)
-                    + Math.pow(Math.cos(LEG_UPPER_WALK_APERTURE_FRONT) * (LEG_UPPER_LENGTH + LEG_LOWER_LENGTH), 2)))
-            const speed_ms = traveled_position
-            if (this.deltaTime > 0)
-                this.model.position.y += -speed_ms * (time - this.deltaTime)
-            this.deltaTime = time
-        }*/
-        /*if (this.state.walking) {
-            this.rigidBody.position.z = 3
-        }*/
 
-        // this.model.position.set(this.rigidBody.position.x, this.rigidBody.position.y, this.rigidBody.position.z - 2.1)
+        if(this._isPaused)
+            return
+
         if (this.state.currentAction !== CHARACTER_ACTION.NONE && this.state.currentAction !== CHARACTER_ACTION.FALLING)
             this.model.position.y -= this.speed
 
@@ -345,7 +337,7 @@ export class Character {
     }
 
     goLeft() {
-        if (this.state.currentAction !== CHARACTER_ACTION.WALKING)
+        if (this.state.currentAction !== CHARACTER_ACTION.WALKING || this._isPaused)
             return
         if (this.state.XPosition.OnRight) {
             this.goCenter()
@@ -361,7 +353,7 @@ export class Character {
     }
 
     goCenter() {
-        if (this.state.currentAction !== CHARACTER_ACTION.WALKING)
+        if (this.state.currentAction !== CHARACTER_ACTION.WALKING || this._isPaused)
             return
         let direction = 0
         if (this.state.XPosition.OnLeft)
@@ -379,7 +371,7 @@ export class Character {
     }
 
     goRight() {
-        if (this.state.currentAction !== CHARACTER_ACTION.WALKING)
+        if (this.state.currentAction !== CHARACTER_ACTION.WALKING || this._isPaused)
             return
         if (this.state.XPosition.OnLeft) {
             this.goCenter()
@@ -396,7 +388,7 @@ export class Character {
     }
 
     goDown() {
-        if (this.state.currentAction === CHARACTER_ACTION.DOWN)
+        if (this.state.currentAction === CHARACTER_ACTION.DOWN || this._isPaused)
             return
         this.state.currentAction = CHARACTER_ACTION.DOWN
         const ANIMATION_SPEED = 400 / this.speed
@@ -452,65 +444,9 @@ export class Character {
     }
 
     jump() {
-        /*
-        console.log("JUMPING")
+        if(this._isPaused)
+            return;
 
-        const ANIMATION_SPEED = 200
-        const keyFrameA = new TWEEN.Tween([
-            this.hierarchicalModel.body.pelvis.LegR.upperPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegL.upperPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegR.lowerPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegL.lowerPivot.rotation,
-            this.hierarchicalModel.body.ArmR.upperPivot.rotation,
-            this.hierarchicalModel.body.ArmL.upperPivot.rotation,
-            this.hierarchicalModel.body.ArmR.lowerPivot.rotation,
-            this.hierarchicalModel.body.ArmL.lowerPivot.rotation,
-            this.hierarchicalModel.body.model.position,
-        ])
-            .to([{x: -Math.PI * 2 / 3}, {x: -Math.PI * 2 / 3}, {x: Math.PI * 3 / 4}, {x: Math.PI * 3 / 4},
-                {z: -Math.PI / 2}, {z: Math.PI / 2}, {z: -Math.PI / 2}, {z: Math.PI / 2},
-                {z: 1}], ANIMATION_SPEED / 4)
-            .easing(TWEEN.Easing.Circular.Out)
-
-        const keyFrameB = new TWEEN.Tween([
-            this.hierarchicalModel.body.pelvis.LegR.upperPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegL.upperPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegR.lowerPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegL.lowerPivot.rotation,
-            this.hierarchicalModel.body.ArmR.upperPivot.rotation,
-            this.hierarchicalModel.body.ArmL.upperPivot.rotation,
-            this.hierarchicalModel.body.ArmR.lowerPivot.rotation,
-            this.hierarchicalModel.body.ArmL.lowerPivot.rotation,
-            this.hierarchicalModel.body.model.position,
-        ])
-            .to([{x: 0}, {x: 0}, {x: 0}, {x: 0},
-                {z: 0}, {z: 0}, {z: 0}, {z: 0},
-                {z: 6}], ANIMATION_SPEED)
-            .easing(TWEEN.Easing.Circular.Out)
-
-        const keyFrameC = new TWEEN.Tween([
-            this.hierarchicalModel.body.pelvis.LegR.upperPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegL.upperPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegR.lowerPivot.rotation,
-            this.hierarchicalModel.body.pelvis.LegL.lowerPivot.rotation,
-            this.hierarchicalModel.body.ArmR.upperPivot.rotation,
-            this.hierarchicalModel.body.ArmL.upperPivot.rotation,
-            this.hierarchicalModel.body.ArmR.lowerPivot.rotation,
-            this.hierarchicalModel.body.ArmL.lowerPivot.rotation,
-            this.hierarchicalModel.body.model.position,
-        ])
-            .to([{x: 0}, {x: 0}, {x: 0}, {x: 0},
-                {z: 0}, {z: 0}, {z: 0}, {z: 0}, {z: WALKING_Z}], ANIMATION_SPEED * 4)
-            .easing(TWEEN.Easing.Linear.None)
-            .onComplete(() => {
-                this.state.currentAction = CHARACTER_ACTION.WALKING
-                this.startWalking()
-            })
-        this._stopAnimation()
-        this.currentTween = keyFrameA
-        keyFrameB.chain(keyFrameC)
-        this.currentTween.chain(keyFrameB)
-        this.currentTween.start()*/
         const ANIMATION_SPEED = 700 / this.speed
         this.state.currentAction = CHARACTER_ACTION.JUMPING
         this._stopAnimation()
@@ -638,7 +574,7 @@ export class Character {
 
         this.currentTween.to([
             {z: -Math.PI / 6, x: Math.PI / 6}, {z: Math.PI / 6, x: Math.PI / 6}, {x: 0}, {x: 0},
-            {z: -Math.PI * 2 / 3, x: -Math.PI/6}, {z: Math.PI * 2 / 3, x: -Math.PI/6},
+            {z: -Math.PI * 2 / 3, x: -Math.PI / 6}, {z: Math.PI * 2 / 3, x: -Math.PI / 6},
             {z: 0, x: 0}, {z: 0, x: 0}, {x: -Math.PI / 2}, {z: WALKING_Z + 0.5}], ANIMATION_SPEED
         )
         this.currentTween.start()
@@ -675,4 +611,11 @@ export class Character {
     }
 
 
+    get isPaused() {
+        return this._isPaused;
+    }
+
+    set isPaused(value) {
+        this._isPaused = value;
+    }
 }

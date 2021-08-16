@@ -26,12 +26,15 @@ export class BlockGenerator {
         let color = "#F55" //Block
         if (blockName === "block_wall") {
             color = "#5F5"
-            size[2]=9
+            size[2] = 6
         }
         else if (blockName === "block_float")
             color = "#55F"
         const blockGeometry = new THREE.BoxGeometry(size[0], size[1], size[2]);
-        const blockMaterial = new THREE.MeshPhongMaterial({color: color});
+        const blockMaterial = new THREE.MeshPhongMaterial({
+            color: color,
+            shininess: 100
+        });
         const block = new THREE.Mesh(blockGeometry, blockMaterial);
         block.name = blockName
 
@@ -58,8 +61,9 @@ export class BlockGenerator {
             const HEIGHT_OFFSET = -HEIGHT / 1.8// * rampInstance.scale.z;
             */
 
-            const blockHeight = (box.name === "block_float" ? 4 : 0)
-
+            let blockHeight = (box.name === "block_float" ? 4 : 0)
+            if (box.name === "block_wall")
+                blockHeight = 2
             //box.body.position.y -= i
             //box.body.position.x = X_POSITION[Math.floor(Math.random() * 3)]
             //box.body.position.z = 1.5 + blockHeight

@@ -1,19 +1,18 @@
 import * as THREE from './lib/three.module.js';
 import {MapGenerator} from './src/map/mapGenerator.js';
 import {CameraHandler} from "./src/cameraHandler.js";
-import {Car} from "./src/objectes/car.js"
 import {KeyboardHandler} from "./src/keyboardHandler.js";
 import {CannonDebugRenderer} from "./lib/CannonDebugRenderer.js"
-import {MaterialGenerator} from "./src/Materials/MaterialGenerator.js";
 import {Character} from "./src/objectes/character.js"
 import {CollisionManager} from "./src/CollisionManager.js";
 import {BlockGenerator} from "./src/map/BlockGenerator.js";
 
-const FLOOR_LENGTH = 500 //MUST BE EQUAL TO THE ONE IN MAP GENERATOR
+const FLOOR_LENGTH = 1000 //MUST BE EQUAL TO THE ONE IN MAP GENERATOR
 
 function main() {
     const canvas = document.querySelector('#c');
     const renderer = new THREE.WebGLRenderer({canvas});
+    const loadManager = new THREE.LoadingManager();
 
     const gameoverMenu = document.getElementById("gameover")
 
@@ -28,15 +27,13 @@ function main() {
     const cameraHandler = new CameraHandler(camera)
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('black');
+    //scene.background = new THREE.Color('#f14063');
+    const loader = new THREE.TextureLoader(loadManager);
+    loader.load('./resources/textures/space.jpg', function (texture) {
+        scene.background = texture;
+    });
 
-    const world = new CANNON.World()
-    world.gravity.set(0, 0, -10);
-
-    const cannonDebugRender = new CannonDebugRenderer(scene, world);
-
-
-    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.2);
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.02);
     scene.add(ambientLight)
 
     {
@@ -47,13 +44,10 @@ function main() {
         scene.add(light);
     }
 
-    const mapGenerator = new MapGenerator()
+    const mapGenerator = new MapGenerator(loadManager)
     const blockGenerator = new BlockGenerator(50)
 
-    // an array of objects who's rotation to update
-    const objects = [];
-
-    const character = new Character()
+    const character = new Character(loadManager)
     mapGenerator.setCarPosition(character.getModel().position)
 
 
@@ -61,17 +55,10 @@ function main() {
     characterModel.position.z = 1
     scene.add(characterModel)
     cameraHandler.setTarget(characterModel.position)
-    //world.addBody(character.getRigidBody())
 
     const keyboardHandler = new KeyboardHandler()
     keyboardHandler.setCallback(event => {
         switch (event) {
-            case KeyboardHandler.EVENTS.WPressed:
-                //character.startWalking()
-                break
-            case KeyboardHandler.EVENTS.WReleased:
-                //character.stopWalking()
-                break
             case KeyboardHandler.EVENTS.APressed:
                 character.goLeft()
                 break
@@ -89,7 +76,6 @@ function main() {
 
     mapGenerator.getMapObjects().then((map) => {
         const blocks = blockGenerator.getBlocks(100, 250)
-        console.log("BLOCKS", blocks.length)
         blocks.forEach(block => {
             scene.add(block)
         })
@@ -122,18 +108,22 @@ function main() {
         return needResize;
     }
 
-    const FIXED_TIME_STEP = 1.0 / 60.0;
-    const MAX_SUBSTEP = 3;
-
-    character.startWalking()
     let speed = 10
     let lastTimeSpeedChanges = 0 //Last time when speed has changed
+    character.isPaused = true
+    loadManager.onLoad = (() => {
+        character.startWalking()
+        character.isPaused = false
+        document.getElementById("loading_flex").style.display='none'
+        document.getElementById("distance").style.display='block'
+    })
+
 
     function updateUI(time) {
         const distancesElements = document.getElementsByClassName("score")
         const dist = Math.round(character.getDistance() / 10)
         for (let i = 0; i < distancesElements.length; i++) {
-            distancesElements.item(i).innerHTML =dist
+            distancesElements.item(i).innerHTML = dist
         }
     }
 
@@ -149,19 +139,19 @@ function main() {
             camera.updateProjectionMatrix();
         }
 
-        objects.forEach((obj) => {
-            obj.rotation.y = time;
-        });
-        if (Math.round(time) % 5 === 0 && Math.round(time) !== lastTimeSpeedChanges && speed < 100) {
-            speed++
-            lastTimeSpeedChanges = Math.round(time)
-            console.log("SPEED CHANGED", speed)
+        if (!character.isPaused) {
+            if (Math.round(time) % 5 === 0 && Math.round(time) !== lastTimeSpeedChanges && speed < 100) {
+                speed++
+                lastTimeSpeedChanges = Math.round(time)
+            }
+            character.setSpeed(Math.log10(speed))
+
+
+            collisionManager.updateCollision(1 / 120)
+            collisionManager.removeUnusedBlock().forEach(block => {
+                scene.remove(block)
+            })
         }
-        character.setSpeed(Math.log10(speed))
-        console.log(collisionManager.updateCollision(1 / 120))
-        collisionManager.removeUnusedBlock().forEach(block => {
-            scene.remove(block)
-        })
 
         cameraHandler.update()
         mapGenerator.update().then(obj => {
@@ -173,9 +163,8 @@ function main() {
         })
         TWEEN.update()
         character.updatePosition(time)
-        world.step(1 / 60);
         updateUI(time)
-        cannonDebugRender.update();      // Update the debug renderer
+
         requestAnimationFrame(render);
         renderer.render(scene, camera);
     }

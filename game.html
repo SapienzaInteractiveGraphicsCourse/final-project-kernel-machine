@@ -8,10 +8,11 @@
     <script type="text/javascript" src="./lib/tween.umd.js"></script>
 </head>
 <script>
-    function loadMenu(){
-        window.location.href="./index.html"
+    function loadMenu() {
+        window.location.href = "./index.html"
     }
-    function reloadPage(){
+
+    function reloadPage() {
         window.location.reload()
     }
 </script>
@@ -19,7 +20,13 @@
     <p>GAMEOVER</p>
     <p>Your score is: <a class="score">0</a></p>
     <button class="buttonClass" onclick="reloadPage()">RESTART</button>
-    <button class="buttonClass"  onclick="loadMenu()">MENU</button>
+    <button class="buttonClass" onclick="loadMenu()">MENU</button>
+</div>
+<div id="loading_flex">
+    <div id="loading_content">
+        <img width="100px" src="resources/textures/loading.gif"/>
+        <p>LOADING...</p>
+    </div>
 </div>
 <div id="distance">Distance <a class="score">0</a></div>
 <body>
