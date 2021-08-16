@@ -10,21 +10,12 @@
     function loadGame() {
         window.location.href = "./game.html"
     }
-
-    function toggleHowToPlay() {
-        const element = document.getElementById("tutorial")
-        if (element.style.display != 'none')
-            element.style.display = 'none'
-        else
-            element.style.display = 'block'
-    }
 </script>
 <div class="menuDiv">
     <img src="resources/bitmap.png"/>
     <h1>DROIDrun</h1>
     <div>
         <button class="buttonClass" onclick="loadGame()">START</button>
-        <button class="buttonClass" onclick="toggleHowToPlay()">How to play</button>
     </div>
     <div class="container">
         <div id="tutorial">
