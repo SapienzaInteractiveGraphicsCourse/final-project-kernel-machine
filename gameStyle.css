@@ -1,0 +1,58 @@
+#c {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+
+html, body {
+    margin: 0;
+    height: 100%;
+}
+
+#gameover {
+    position: absolute;
+    background-color: transparent;
+    font-size: 60px;
+    width: 100%;
+    top: 20%;
+    text-align: center;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    color: orangered;
+    display: block;
+}
+
+#distance {
+    position: absolute;
+    background-color: black;
+    top: 5%;
+    left: 5%;
+    font-size: 40px;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    color: yellow;
+    display: block;
+}
+
+.buttonClass {
+    font-size:15px;
+    font-family:Arial;
+    width:140px;
+    height:50px;
+    border-width:1px;
+    color:#fff;
+    border-color:#241d13;
+    font-weight:bold;
+    border-top-left-radius:0px;
+    border-top-right-radius:0px;
+    border-bottom-left-radius:0px;
+    border-bottom-right-radius:0px;
+    box-shadow:inset 0px 34px 0px -15px #b54b3a;
+    text-shadow:inset 0px -1px 0px #7a2a1d;
+    background:#a73f2d;
+}
+
+.buttonClass:hover {
+    background: #b34332
+}

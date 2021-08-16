@@ -30,7 +30,7 @@ export class RampGenerator {
     getRamps(startY = 0, endY) {
 
 
-        const X_POSITION = [-6, 0, 6]
+        const X_POSITION = [-6.8, -0.8, 5.2]
 
         return new Promise(resolve => {
 
@@ -73,15 +73,15 @@ export class RampGenerator {
                     console.log(vertices)
 
                     let faces = [
-                        [2, 1, 0],
+                        [2, 1, 0].reverse(),
                         [4, 5, 2, 1],
                         [2, 5, 3, 0],
-                        [4, 3, 5],
+                        [4, 3, 5].reverse(),
                         [1, 0, 3, 4],
                     ]
 
                     var trimeshShape = new CANNON.ConvexPolyhedron(vertices, faces);
-                    trimeshShape.create
+                    trimeshShape.computeNormals()
 
                     const rampBodyInstance = new CANNON.Body({
                         mass: 0, // kg

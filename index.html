@@ -1,12 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <script type="module" src="./app.js"></script>
+    <meta charset="UTF-8">
+    <title>DROIDrun</title>
     <link rel="stylesheet" href="./style.css"/>
-    <script src="./lib/cannon.min.js"></script>
 </head>
-<body>
-<canvas id="c"></canvas>
+<body id="menuBody">
+<script>
+    function loadGame() {
+        window.location.href="./game.html"
+    }
+</script>
+<div class="menuDiv">
+    <img src="resources/bitmap.png"/>
+    <h1>DROIDrun</h1>
+    <div>
+        <button class="buttonClass" onclick="loadGame()">START</button>
+        <button class="buttonClass">TUTORIAL</button>
+    </div>
+</div>
 </body>
 </html>

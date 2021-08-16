@@ -8,7 +8,6 @@ const PARTICLE_SMOG_MAX_SIZE_Y = 0.5;
 
 const PARTICLE_SMOG_PARTICLES_COUNT = 300
 
-const RIGIDBODY_CAR_POSITION_OFFSET = new CANNON.Vec3(0, -0.175, 1.18)
 const RIGIDBODY_CAR_DIMENSION = new CANNON.Vec3(1.1, 2.46, 0.65)
 
 export class Car {
@@ -99,11 +98,10 @@ export class Car {
                 car.add(particleSystem)
 
                 const carRigidBody = new CANNON.Body({
-                    mass: 800,
-                    position: new CANNON.Vec3(car.position.x + RIGIDBODY_CAR_POSITION_OFFSET.x, car.position.y + RIGIDBODY_CAR_POSITION_OFFSET.y, car.position.z + RIGIDBODY_CAR_POSITION_OFFSET.z),
+                    mass: 5,
+                    position: new CANNON.Vec3(0, 0, 3),
                     shape: new CANNON.Box(RIGIDBODY_CAR_DIMENSION),
                 })
-
                 resolve({car: car, rigidbody: carRigidBody})
 
             }
@@ -121,6 +119,15 @@ export class Car {
         )
     }
 
+    _getRigidbodyCarOffset() {
+        let rigidBodyRotation = new CANNON.Vec3(0, 0, 0)
+        this.carRigidBody.quaternion.toEuler(rigidBodyRotation, 'YZX')
+        //console.log(THREE.Math.radToDeg(rigidBodyRotation.x), THREE.Math.radToDeg(rigidBodyRotation.y), THREE.Math.radToDeg(rigidBodyRotation.z))
+        const X_COMPONENT = 1.15 * Math.sin(rigidBodyRotation.y)
+        const Y_COMPONENT = -0.175 - (0.95 * Math.sin(rigidBodyRotation.x))
+        const Z_COMPONENT = 1.18 * Math.cos(rigidBodyRotation.y) * Math.cos(rigidBodyRotation.x)
+        return new CANNON.Vec3(X_COMPONENT, Y_COMPONENT, Z_COMPONENT)
+    }
 
     _turnLeftAnimation() {
         if (this.carModel == null)
@@ -211,19 +218,24 @@ export class Car {
         const step_x = Math.sin(this.carModel.rotation.z) * step * (this.state.wheelDirectionFront ? 1 : -1)
         const STEERING_STRENGTH = 30 //From 0 to 1000
 
-        const IS_ON_PLANE = this.carModel.rotation.y > THREE.Math.degToRad(-45) && this.carModel.rotation.y < THREE.Math.degToRad(45)
+        let rigidBodyRotation = new CANNON.Vec3(0, 0, 0)
+        this.carRigidBody.quaternion.toEuler(rigidBodyRotation, 'YZX')
+
+        const IS_ON_PLANE = rigidBodyRotation.y > THREE.Math.degToRad(-45) && rigidBodyRotation.y < THREE.Math.degToRad(45)
 
 
         //Only the body position is edited, the model will be updated on update function
-        if(IS_ON_PLANE) {
+        if (IS_ON_PLANE) {
+            /*
+            this.carRigidBody.velocity.y = step_y * 10
+            this.carRigidBody.velocity.x = step_x * 10
+            */
             this.carRigidBody.position.y += step_y
             this.carRigidBody.position.x += step_x
         }
-        if (this.carModel.position.z < 0 && IS_ON_PLANE) {
-            var target = new CANNON.Vec3(0, 0, 0)
-            this.carRigidBody.quaternion.toEuler(target, 'YZX')
-            target.z -= this.state.steeringAngle * invert_steering * STEERING_STRENGTH / 1000
-            this.carRigidBody.quaternion.setFromEuler(target.x, target.y, target.z)
+        if (this.carRigidBody.position.z < 1.5 && IS_ON_PLANE) {
+            rigidBodyRotation.z -= this.state.steeringAngle * invert_steering * STEERING_STRENGTH / 1000
+            this.carRigidBody.quaternion.setFromEuler(rigidBodyRotation.x, rigidBodyRotation.y, rigidBodyRotation.z)
         }
     }
 
@@ -273,11 +285,13 @@ export class Car {
             this._rotateWheelsAnimation(1)
         }
         if (this.carModel != null && this.carRigidBody != null) {
+            const rigidBodyOffset = this._getRigidbodyCarOffset()
 
             //Update position/rotation of the model to the physical body
-            this.carModel.position.x = this.carRigidBody.position.x - RIGIDBODY_CAR_POSITION_OFFSET.x
-            this.carModel.position.y = this.carRigidBody.position.y - RIGIDBODY_CAR_POSITION_OFFSET.y
-            this.carModel.position.z = this.carRigidBody.position.z - RIGIDBODY_CAR_POSITION_OFFSET.z
+            this.carModel.position.x = this.carRigidBody.position.x - rigidBodyOffset.x
+            this.carModel.position.y = this.carRigidBody.position.y - rigidBodyOffset.y
+            this.carModel.position.z = this.carRigidBody.position.z - rigidBodyOffset.z
+
             var target = new CANNON.Vec3(0, 0, 0)
             this.carRigidBody.quaternion.toEuler(target, 'YZX')
             this.carModel.rotation.set(target.x, target.y, target.z)
