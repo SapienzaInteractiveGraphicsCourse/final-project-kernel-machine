@@ -43,7 +43,7 @@ export class BlockGenerator {
         blockHeightMap.magFilter = THREE.NearestFilter;
         blockHeightMap.minFilter = THREE.NearestFilter
 
-        const blockAoMap = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/block/ground_0031_ao_2k.png");
+        const blockAoMap = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/block/ground_0031_ao_2k.jpg");
         blockAoMap.wrapS = THREE.RepeatWrapping;
         blockAoMap.wrapT = THREE.RepeatWrapping;
         blockAoMap.repeat.set(1,1);
