@@ -45,7 +45,7 @@ function main() {
     }
 
     const mapGenerator = new MapGenerator(loadManager)
-    const blockGenerator = new BlockGenerator(50)
+    const blockGenerator = new BlockGenerator(50, loadManager)
 
     const character = new Character(loadManager)
     mapGenerator.setCarPosition(character.getModel().position)
@@ -75,7 +75,7 @@ function main() {
     })
 
     mapGenerator.getMapObjects().then((map) => {
-        const blocks = blockGenerator.getBlocks(100, FLOOR_LENGTH/2)
+        const blocks = blockGenerator.getBlocks(100, FLOOR_LENGTH / 2)
         blocks.forEach(block => {
             scene.add(block)
         })
@@ -94,7 +94,7 @@ function main() {
         else if (block.name === "block") {
             character.fallOnTheFront()
         }
-        gameoverMenu.style.display = "block"
+        //gameoverMenu.style.display = "block"
     }
 
     function resizeRendererToDisplaySize(renderer) {

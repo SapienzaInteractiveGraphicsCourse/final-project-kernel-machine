@@ -5,9 +5,60 @@ const DISTANCES_BETWEEN_RAMPS = 50
 export class BlockGenerator {
     distanceBetweenBlock = DISTANCES_BETWEEN_RAMPS
     blockArray = []
+    loaderManager = null
 
-    constructor(distanceBetweenBlocks) {
+    blockMaterial = null
+
+    constructor(distanceBetweenBlocks, loaderManager) {
         this.distanceBetweenBlock = distanceBetweenBlocks
+        this.loaderManager = loaderManager
+
+        const path = window.location.href.substring(0, window.location.href.lastIndexOf("/"))
+
+        const blockNormalMap = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/block/ground_0031_normal_2k.png")
+        blockNormalMap.wrapS = THREE.RepeatWrapping;
+        blockNormalMap.wrapT = THREE.RepeatWrapping;
+        blockNormalMap.repeat.set(1,1);
+        blockNormalMap.magFilter = THREE.NearestFilter;
+        blockNormalMap.minFilter = THREE.NearestFilter;
+
+        const blockRoughnessMap = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/block/ground_0031_roughness_2k.jpg");
+        blockRoughnessMap.wrapS = THREE.RepeatWrapping;
+        blockRoughnessMap.wrapT = THREE.RepeatWrapping;
+        blockRoughnessMap.repeat.set(1,1);
+        blockRoughnessMap.magFilter = THREE.NearestFilter;
+        blockRoughnessMap.minFilter = THREE.NearestFilter;
+
+        const blockColorMap = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/block/ground_0031_color_2k.jpg");
+        blockColorMap.wrapS = THREE.RepeatWrapping;
+        blockColorMap.wrapT = THREE.RepeatWrapping;
+        blockColorMap.repeat.set(1,1);
+        blockColorMap.magFilter = THREE.NearestFilter;
+        blockColorMap.minFilter = THREE.NearestFilter;
+
+        const blockHeightMap = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/block/ground_0031_height_2k.png");
+        blockHeightMap.wrapS = THREE.RepeatWrapping;
+        blockHeightMap.wrapT = THREE.RepeatWrapping;
+        blockHeightMap.repeat.set(1,1);
+        blockHeightMap.magFilter = THREE.NearestFilter;
+        blockHeightMap.minFilter = THREE.NearestFilter
+
+        const blockAoMap = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/block/ground_0031_ao_2k.png");
+        blockAoMap.wrapS = THREE.RepeatWrapping;
+        blockAoMap.wrapT = THREE.RepeatWrapping;
+        blockAoMap.repeat.set(1,1);
+        blockAoMap.magFilter = THREE.NearestFilter;
+        blockAoMap.minFilter = THREE.NearestFilter;
+
+        this.blockMaterial =  new THREE.MeshStandardMaterial({
+            map: blockColorMap,
+            aoMap: blockAoMap,
+            normalMap: blockNormalMap,
+            roughnessMap: blockRoughnessMap,
+            bumpMap: blockHeightMap,
+            side: THREE.DoubleSide
+            //emissiveIntensity: 10,
+        });
     }
 
     _getRandomBlockType() {
@@ -31,11 +82,7 @@ export class BlockGenerator {
         else if (blockName === "block_float")
             color = "#55F"
         const blockGeometry = new THREE.BoxGeometry(size[0], size[1], size[2]);
-        const blockMaterial = new THREE.MeshPhongMaterial({
-            color: color,
-            shininess: 100
-        });
-        const block = new THREE.Mesh(blockGeometry, blockMaterial);
+        const block = new THREE.Mesh(blockGeometry, this.blockMaterial);
         block.name = blockName
 
         return block

@@ -20,27 +20,52 @@ export class MapGenerator {
     }
 
     _getFloorInstance() {
+        const X_REPEAT_FLOOR = 5
+        const Y_REPEAT_FLOOR = FLOOR_WIDTH * (FLOOR_LENGTH / X_REPEAT_FLOOR) / 20
+        const X_REPEAT_WALL = 1
+        const Y_REPEAT_WALL = FLOOR_WIDTH * (FLOOR_LENGTH / X_REPEAT_WALL) / 100
         const path = window.location.href.substring(0, window.location.href.lastIndexOf("/"))
-        const texture = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/floor_metal.webp");
-        texture.wrapS = THREE.RepeatWrapping
-        texture.wrapT = THREE.RepeatWrapping
-        texture.repeat.set(8, 16)
 
-        const textureWall = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/floor_metal.webp");
-        textureWall.wrapS = THREE.RepeatWrapping
-        textureWall.wrapT = THREE.RepeatWrapping
-        textureWall.repeat.set(2, 3)
+        const metalDiffuse = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/floor/Metal_Texture_spec.jpg");
+        metalDiffuse.wrapS = THREE.RepeatWrapping;
+        metalDiffuse.wrapT = THREE.RepeatWrapping;
+        metalDiffuse.repeat.set(X_REPEAT_FLOOR, Y_REPEAT_FLOOR);
+        metalDiffuse.magFilter = THREE.NearestFilter;
+        metalDiffuse.minFilter = THREE.NearestFilter;
 
-        const wallMaterial = new THREE.MeshPhongMaterial({
-            map: textureWall,
-            shininess: 100
+
+        const metalNormals = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/floor/Metal_Texture_normals.jpg");
+        metalNormals.wrapS = THREE.RepeatWrapping;
+        metalNormals.wrapT = THREE.RepeatWrapping;
+        metalNormals.repeat.set(X_REPEAT_FLOOR, Y_REPEAT_FLOOR);
+        metalNormals.magFilter = THREE.NearestFilter;
+        metalNormals.minFilter = THREE.NearestFilter;
+
+        const metalDiffuseWall = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/floor/Metal_Texture_spec.jpg");
+        metalDiffuseWall.wrapS = THREE.RepeatWrapping;
+        metalDiffuseWall.wrapT = THREE.RepeatWrapping;
+        metalDiffuseWall.repeat.set(X_REPEAT_WALL, Y_REPEAT_WALL);
+        metalDiffuseWall.magFilter = THREE.NearestFilter;
+        metalDiffuseWall.minFilter = THREE.NearestFilter;
+
+
+        const metalNormalsWall = new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/floor/Metal_Texture_normals.jpg");
+        metalNormalsWall.wrapS = THREE.RepeatWrapping;
+        metalNormalsWall.wrapT = THREE.RepeatWrapping;
+        metalNormalsWall.repeat.set(X_REPEAT_WALL, Y_REPEAT_WALL);
+        metalNormalsWall.magFilter = THREE.NearestFilter;
+        metalNormalsWall.minFilter = THREE.NearestFilter;
+
+        const wallMaterial = new THREE.MeshStandardMaterial({
+            map: metalDiffuseWall,
+            normalMap: metalNormalsWall,
         })
 
         //Floor
         const floorGeometry = new THREE.BoxGeometry(FLOOR_WIDTH, FLOOR_LENGTH, FLOOR_HEIGHT);
         const floorMaterial = new THREE.MeshPhongMaterial({
-            map: texture,
-            shininess: 100
+            map: metalDiffuse,
+            normalMap: metalNormals,
         })        //new THREE.MeshPhongMaterial({color: '#8AC'});
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 

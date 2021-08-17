@@ -95,7 +95,10 @@ export class Character {
         const textureLoader = new THREE.TextureLoader(this.loaderManager)
         const path = window.location.href.substring(0, window.location.href.lastIndexOf("/"))
         const blackMetal = new THREE.MeshPhongMaterial({map: textureLoader.load(path + "/resources/textures/black_metal.jpg")});
-        const metal = new THREE.MeshPhongMaterial({map: textureLoader.load(path + "/resources/textures/metal.jpg")});
+        const metal = new THREE.MeshPhongMaterial({
+            map: textureLoader.load(path + "/resources/textures/robot/ubertexture_metal_spec.jpg"),
+            normalMap: textureLoader.load(path + "/resources/textures/robot/ubertexture_metal_normal.jpg")
+        });
 
         const bodyGeometry = new THREE.CylinderGeometry(1, 0.8, BODY_HEIGHT, 64);
         const body = new THREE.Mesh(bodyGeometry, metal);
@@ -201,7 +204,10 @@ export class Character {
             metal,
             metal,
             metal,
-            new THREE.MeshPhongMaterial({map: new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/face.png")}),
+            new THREE.MeshPhongMaterial({
+                map: new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/robot/face.png"),
+                normalMap: new THREE.TextureLoader(this.loaderManager).load(path + "/resources/textures/robot/face_normal.png")
+            }),
             metal
         ]
 
