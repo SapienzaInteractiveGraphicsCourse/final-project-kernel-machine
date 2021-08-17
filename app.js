@@ -94,7 +94,7 @@ function main() {
         else if (block.name === "block") {
             character.fallOnTheFront()
         }
-        //gameoverMenu.style.display = "block"
+        gameoverMenu.style.display = "block"
     }
 
     function resizeRendererToDisplaySize(renderer) {
