@@ -1,10 +1,10 @@
 import * as THREE from './lib/three.module.js';
-import {MapGenerator} from './src/map/mapGenerator.js';
-import {CameraHandler} from "./src/cameraHandler.js";
-import {KeyboardHandler} from "./src/keyboardHandler.js";
-import {Character} from "./src/objectes/character.js"
+import {MapGenerator} from './src/Map/MapGenerator.js';
+import {CameraHandler} from "./src/CameraHandler.js";
+import {KeyboardHandler} from "./src/KeyboardHandler.js";
+import {Character} from "./src/Objects/Character.js"
 import {CollisionManager} from "./src/CollisionManager.js";
-import {BlockGenerator} from "./src/map/BlockGenerator.js";
+import {BlockGenerator} from "./src/Map/BlockGenerator.js";
 
 const FLOOR_LENGTH = 1000 //MUST BE EQUAL TO THE ONE IN MAP GENERATOR
 
