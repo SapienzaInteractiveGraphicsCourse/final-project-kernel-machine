@@ -84,6 +84,7 @@ export class Character {
     }
     speed = 1
     currentTween = null
+    directionAnimation = null
     getCenterBodyAnimation = null
     loaderManager = null
     _isPaused = false
@@ -351,10 +352,11 @@ export class Character {
             this.goCenter()
             return
         }
-        const animation = new TWEEN.Tween([this.model.position, this.hierarchicalModel.body.model.rotation])
+        this.stopDirectionAnimation()
+        this.directionAnimation = new TWEEN.Tween([this.model.position, this.hierarchicalModel.body.model.rotation])
             .to([{x: this.xPositions.LEFT}, {y: Math.PI / 8}], 300 / this.speed)
-        animation.chain(this.getCenterBodyAnimation)
-        animation.start()
+        this.directionAnimation.chain(this.getCenterBodyAnimation)
+        this.directionAnimation.start()
         this.state.XPosition.OnRight = false
         this.state.XPosition.OnCenter = false
         this.state.XPosition.OnLeft = true
@@ -369,10 +371,10 @@ export class Character {
         else if (this.state.XPosition.OnRight)
             direction = 1
 
-        const animation = new TWEEN.Tween([this.model.position, this.hierarchicalModel.body.model.rotation])
+        this.directionAnimation = new TWEEN.Tween([this.model.position, this.hierarchicalModel.body.model.rotation])
             .to([{x: this.xPositions.CENTER}, {y: direction * Math.PI / 8}], 300 / this.speed)
-        animation.chain(this.getCenterBodyAnimation)
-        animation.start()
+        this.directionAnimation.chain(this.getCenterBodyAnimation)
+        this.directionAnimation.start()
         this.state.XPosition.OnRight = false
         this.state.XPosition.OnCenter = true
         this.state.XPosition.OnLeft = false
@@ -385,10 +387,10 @@ export class Character {
             this.goCenter()
             return
         }
-        const animation = new TWEEN.Tween([this.model.position, this.hierarchicalModel.body.model.rotation])
+        this.directionAnimation = new TWEEN.Tween([this.model.position, this.hierarchicalModel.body.model.rotation])
             .to([{x: this.xPositions.RIGHT}, {y: -Math.PI / 8}], 300)
-        animation.chain(this.getCenterBodyAnimation)
-        animation.start()
+        this.directionAnimation.chain(this.getCenterBodyAnimation)
+        this.directionAnimation.start()
         this.state.XPosition.OnRight = true
         this.state.XPosition.OnCenter = false
         this.state.XPosition.OnLeft = false
@@ -610,7 +612,7 @@ export class Character {
             {z: -Math.PI * 2 / 3, x: Math.PI / 2}, {
                 z: Math.PI * 2 / 3,
                 x: Math.PI / 2
-            }, {z: 0}, {z: 0}, {x: Math.PI}, {x: -Math.PI / 3}], ANIMATION_SPEED
+            }, {z: 0}, {z: 0}, {x: Math.PI}, {x: Math.PI / 6}], ANIMATION_SPEED
         )
 
 
@@ -624,5 +626,10 @@ export class Character {
 
     set isPaused(value) {
         this._isPaused = value;
+    }
+
+    stopDirectionAnimation() {
+        if (this.directionAnimation)
+            this.directionAnimation.stop()
     }
 }

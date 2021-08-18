@@ -33,7 +33,7 @@ function main() {
         scene.background = texture;
     });
 
-    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.02);
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.05);
     scene.add(ambientLight)
 
     {
@@ -41,6 +41,15 @@ function main() {
         const intensity = 1;
         const light = new THREE.DirectionalLight(color, intensity);
         light.position.set(10, 10, 20)
+        scene.add(light);
+    }
+
+    {
+        const color = 0x9999FF;
+        const intensity = 0.5;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(0, -100, 5)
+        light.rotation.set(0,0,0)
         scene.add(light);
     }
 
@@ -85,6 +94,7 @@ function main() {
     const collisionManager = new CollisionManager(character.getModel().position, blockGenerator, character.hierarchicalModel.body.model.rotation)
     collisionManager._onCollision = function (block) {
         character.stopWalkingImmediate()
+        character.stopDirectionAnimation()
         if (block.name === "block_wall") {
             character.fallIntoTheWall()
             character.getModel().position.y += 1.5
